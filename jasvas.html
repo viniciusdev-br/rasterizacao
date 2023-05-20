@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      canvas {
+        border: 1px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="myCanvas" width="800" height="600"></canvas>
+
+    <script>
+      // Configurações
+      const WINDOW_WIDTH = 800;
+      const WINDOW_HEIGHT = 600;
+      const PIXEL_SIZE = 10;
+      const GRID_WIDTH = WINDOW_WIDTH / PIXEL_SIZE;
+      const GRID_HEIGHT = WINDOW_HEIGHT / PIXEL_SIZE;
+
+      // Obtém o elemento do canvas
+      const canvas = document.getElementById("myCanvas");
+      const ctx = canvas.getContext("2d");
+
+      // Desenho dos pixels ao longo do eixo X
+      for (let x = 0; x <= GRID_WIDTH; x++) {
+        ctx.fillStyle = "black";
+        ctx.fillRect(x * PIXEL_SIZE, 0, PIXEL_SIZE, PIXEL_SIZE);
+        ctx.fillRect(x * PIXEL_SIZE, WINDOW_HEIGHT - PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+      }
+    </script>
+  </body>
+</html>
