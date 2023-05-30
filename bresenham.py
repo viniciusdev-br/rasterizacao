@@ -1,4 +1,6 @@
 from grid import Grid
+import sys
+print(sys.getrecursionlimit())
 
 grid = Grid(extent=10, size=500)
 
@@ -34,6 +36,32 @@ def bresenham_line(selected_cells, rendered_cells, parameters):
     for c in points:
 	    grid.render_cell(c)
 
+def polilinha(selected_cells, rendered_cells, parameters):
+    for i in range(0, len(selected_cells) - 1):
+        bresenham_line([selected_cells[i], selected_cells[i + 1]], rendered_cells, parameters)
+     
+            
+def preencher_recursivo(x, y, rendered_cells):
+    if x > 10 or x < -10 or y > 10 or y < -10:
+      print((x,y), 'sairam do limite')
+      return
+  
+    if (x, y) not in rendered_cells:
+        rendered_cells.append((x,y))
+        print((x,y))
+        preencher_recursivo(x + 1, y, rendered_cells)
+        preencher_recursivo(x - 1, y, rendered_cells)
+        preencher_recursivo(x, y + 1, rendered_cells)
+        preencher_recursivo(x, y - 1, rendered_cells)
+        return rendered_cells
+
+def preencher(selected_cells, rendered_cells, parameters):
+    print(selected_cells)
+    x0, y0 = selected_cells[0]
+    points = preencher_recursivo(x0, y0, rendered_cells)
+    for c in points:
+	    grid.render_cell(c)
+
 def ponto_medio(selected_cells, rendered_cells, parameters):
     r = 5
     coordenadas_circulo = []
@@ -66,6 +94,8 @@ def ponto_medio(selected_cells, rendered_cells, parameters):
 # Adds the algorithm to the grid
 grid.add_algorithm(name="Render cells", parameters=None, algorithm=my_render_cells_algorithm)
 grid.add_algorithm(name='Bresenham', parameters=None, algorithm=bresenham_line)
+grid.add_algorithm(name='Polilinha', parameters=None, algorithm=polilinha)
 grid.add_algorithm(name='Circulo', parameters=None, algorithm=ponto_medio)
+grid.add_algorithm(name='Preenchimento', parameters=None, algorithm=preencher)
 
 grid.show()
