@@ -54,6 +54,9 @@ class Grid:
     def render_cell(self, cell):
         self.raster.render_cell(cell)
 
+    def render_cells(self, cells):
+        for i in cells:
+            self.raster.render_cell(i)
 
     def clear_cell(self, cell):
         self.raster.clear_cell(cell)

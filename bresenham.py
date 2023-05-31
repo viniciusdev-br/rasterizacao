@@ -1,8 +1,9 @@
 from grid import Grid
 import sys
+import numpy as np
 print(sys.getrecursionlimit())
 
-grid = Grid(extent=10, size=500)
+grid = Grid(extent=15, size=500)
 
 def my_render_cells_algorithm(selected_cells, rendered_cells, parameters):
     for cell in selected_cells:
@@ -37,9 +38,9 @@ def bresenham_line(selected_cells, rendered_cells, parameters):
 	    grid.render_cell(c)
 
 def polilinha(selected_cells, rendered_cells, parameters):
+    print(selected_cells)
     for i in range(0, len(selected_cells) - 1):
         bresenham_line([selected_cells[i], selected_cells[i + 1]], rendered_cells, parameters)
-     
             
 def preencher_recursivo(x, y, rendered_cells):
     if x > 10 or x < -10 or y > 10 or y < -10:
@@ -63,7 +64,7 @@ def preencher(selected_cells, rendered_cells, parameters):
 	    grid.render_cell(c)
 
 def ponto_medio(selected_cells, rendered_cells, parameters):
-    r = 5
+    r = int(parameters['R'])
     coordenadas_circulo = []
     def desenha8(x, y, xc, yc):
         coordenadas_circulo.append((x + xc, y + yc))
@@ -74,8 +75,7 @@ def ponto_medio(selected_cells, rendered_cells, parameters):
         coordenadas_circulo.append((-y + xc, -x + yc))
         coordenadas_circulo.append((-y + xc, x + yc))
         coordenadas_circulo.append((-x + xc, y + yc))
-    xc = 0 
-    yc = 0 
+    xc, yc = selected_cells[0]
     x = 0 
     y = r
     e = -r
@@ -96,9 +96,6 @@ def scanline(selected_cells, rendered_cells, parameters):
     # Determinar a linha de varredura mais baixa e mais alta
     y_min = min(point[1] for point in points)
     y_max = max(point[1] for point in points)
-
-    # Inicializar lista de pontos críticos
-    critical_points = []
 
     # Percorrer cada linha de varredura
     for y in range(y_min, y_max + 1):
@@ -125,12 +122,91 @@ def scanline(selected_cells, rendered_cells, parameters):
             for x in range(x_start, x_end + 1):
                 grid.render_cell((x, y))  # Função para preencher um pixel na coordenada (x, y)
 
+def perspective_projection(selected_cells, rendered_cells, parameters):
+    # points = selected_cells
+    points = [
+    (2, 2, 2), 
+    (2, -2, 2), 
+    (-2, -2, 2), 
+    (-2, 2, 2), 
+    (2, 2, -2), 
+    (2, -2, -2), 
+    (-2, -2, -2), 
+    (-2, 2, -2) 
+]
+    d = 4
+    projected_points = []
+    for point in points:
+        x = point[0]
+        y = point[1]
+        z = point[2]
+        projected_x = x * d / (d + z)
+        projected_y = y * d / (d + z)
+        projected_points.append((round(projected_x), round(projected_y)))
+    print(projected_points)
+    for c in projected_points:
+        x, y = c
+        grid.render_cell((x, y))
+
+def translacao(selected_cells, rendered_cells, parameters):
+    points = rendered_cells
+    xt = int(parameters['x'])
+    yt = int(parameters['y'])
+
+    grid._clear_all()
+
+    for i in points:
+        x, y = i
+        grid.render_cell((x + xt, y + yt))
+
+def rotacao(selected_cells, rendered_cells, parameters):
+    points = rendered_cells
+    grid._clear_all()
+    pivo_x = int(parameters['PivoX'])
+    pivo_y = int(parameters['PivoY'])
+    angulo = np.radians(int(parameters['grau']))
+    rotacionado = []
+    for i in points:
+        x, y = i
+
+        rotated_x = round(pivo_x + (x - pivo_x) * np.cos(angulo) - (y - pivo_y) * np.sin(angulo))
+        rotated_y = round(pivo_y + (x - pivo_x) * np.sin(angulo) + (y - pivo_y) * np.cos(angulo))
+
+        rotacionado.append((rotated_x, rotated_y))
+
+    for i in rotacionado:
+        grid.render_cell(i)
+
+def escala(selected_cells, rendered_cells, parameters):
+    points = rendered_cells
+    xE = int(parameters['EscalaX'])
+    yE = int(parameters['EscalaY'])
+
+    scaledPoints = []
+    for point in points:
+        x = point[0]
+        y = point[1]
+        scaledX = x * xE
+        scaledY = y * yE
+        scaledPoint = (scaledX, scaledY)
+        #scaledLinha = bres((x,y),(scaledPoint[0], scaledPoint[1]))
+
+        scaledPoints.append(scaledPoint)
+    
+    print(scaledPoints)
+    grid.render_cells(scaledPoints)
+
+
 # Adds the algorithm to the grid
 grid.add_algorithm(name="Render cells", parameters=None, algorithm=my_render_cells_algorithm)
+grid.add_algorithm(name='Translação', parameters=['x', 'y'], algorithm=translacao)
+grid.add_algorithm(name='Rotação', parameters=['grau', 'PivoX', 'PivoY'], algorithm=rotacao)
+grid.add_algorithm(name='Escala', parameters=['EscalaX', 'EscalaY'], algorithm=escala)
 grid.add_algorithm(name='Bresenham', parameters=None, algorithm=bresenham_line)
 grid.add_algorithm(name='Polilinha', parameters=None, algorithm=polilinha)
-grid.add_algorithm(name='Circulo', parameters=None, algorithm=ponto_medio)
+grid.add_algorithm(name='Circulo', parameters=['R'], algorithm=ponto_medio)
 grid.add_algorithm(name='Preenchimento Recursivo', parameters=None, algorithm=preencher)
 grid.add_algorithm(name='Preenchimento Scanline', parameters=None, algorithm=scanline)
+grid.add_algorithm(name='Projeção Perspectiva', parameters=None, algorithm=perspective_projection)
 
 grid.show()
