@@ -41,7 +41,19 @@ def polilinha(selected_cells, rendered_cells, parameters):
     print(selected_cells)
     for i in range(0, len(selected_cells) - 1):
         bresenham_line([selected_cells[i], selected_cells[i + 1]], rendered_cells, parameters)
-            
+
+def recorte(selected_cells, rendered_cells, parameters):
+    print(selected_cells)
+    xMin, yMin = selected_cells[0]
+    xMax, yMax = selected_cells[1]
+    for i in rendered_cells:
+        x, y = i
+        if ((xMin <= x and x <= xMax) and (yMin <= y and y <= yMax)):
+            continue
+        grid.clear_cell((x, y))
+
+        # bresenham_line([selected_cells[i], selected_cells[i + 1]], rendered_cells, parameters)
+
 def preencher_recursivo(x, y, rendered_cells):
     if x > 10 or x < -10 or y > 10 or y < -10:
       print((x,y), 'sairam do limite')
@@ -205,6 +217,7 @@ grid.add_algorithm(name='Escala', parameters=['EscalaX', 'EscalaY'], algorithm=e
 grid.add_algorithm(name='Bresenham', parameters=None, algorithm=bresenham_line)
 grid.add_algorithm(name='Polilinha', parameters=None, algorithm=polilinha)
 grid.add_algorithm(name='Circulo', parameters=['R'], algorithm=ponto_medio)
+grid.add_algorithm(name='Recorte', parameters=None, algorithm=recorte)
 grid.add_algorithm(name='Preenchimento Recursivo', parameters=None, algorithm=preencher)
 grid.add_algorithm(name='Preenchimento Scanline', parameters=None, algorithm=scanline)
 grid.add_algorithm(name='Projeção Perspectiva', parameters=None, algorithm=perspective_projection)
