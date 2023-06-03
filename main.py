@@ -32,7 +32,7 @@ def bresenham_line(selected_cells, rendered_cells, parameters):
             y += ystep
             d_error -= 2 * dx
     for c in points:
-	    grid.render_cell(c)
+        grid.render_cell(c)
 
 def polilinha(selected_cells, rendered_cells, parameters):
     for i in range(0, len(selected_cells) - 1):
@@ -222,13 +222,13 @@ def rasterize_bezier(selected_cells, rendered_cells, parameters):
     for i in range(len(curve_points) - 1):
         p0 = curve_points[i]
         p1 = curve_points[i + 1]
-        rasterized_segment = rasterize_line(p0, p1)
+        rasterized_segment = bresenham_for_bez(p0, p1)
         rasterized_points.extend(rasterized_segment)
 
     for cell in rasterized_points:
         grid.render_cell(cell)
 
-def rasterize_line(p0, p1):
+def bresenham_for_bez(p0, p1):
     x0, y0 = int(p0[0]), int(p0[1])
     x1, y1 = int(p1[0]), int(p1[1])
     dx = abs(x1 - x0)
@@ -255,7 +255,7 @@ def rasterize_line(p0, p1):
         if error < 0:
             y += y_step
             error += dx
-
+    print(p0, p1, rasterized_points)
     return rasterized_points
 
 # Adds the algorithm to the grid
