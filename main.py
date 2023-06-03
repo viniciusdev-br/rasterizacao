@@ -96,34 +96,27 @@ def ponto_medio(selected_cells, rendered_cells, parameters):
 
 def scanline(selected_cells, rendered_cells, parameters):
     points = rendered_cells
-    # Determinar a linha de varredura mais baixa e mais alta
     y_min = min(point[1] for point in points)
     y_max = max(point[1] for point in points)
 
-    # Percorrer cada linha de varredura
     for y in range(y_min, y_max + 1):
-        # Encontrar os pontos de interseção entre a linha de varredura e os segmentos da polilinha
         intersections = []
         for i in range(len(points)):
             x1, y1 = points[i]
-            x2, y2 = points[(i+1) % len(points)]  # Ponto seguinte (considerando polilinha fechada)
+            x2, y2 = points[(i+1) % len(points)]  
 
             if (y1 <= y < y2) or (y2 <= y < y1):
-                # Calcular interseção entre a linha de varredura e o segmento da polilinha
                 x_intersect = int(x1 + (float(y - y1) / (y2 - y1)) * (x2 - x1))
                 intersections.append(x_intersect)
 
-        # Ordenar pontos de interseção em ordem crescente de coordenada x
         intersections.sort()
 
-        # Preencher pixels entre pontos de interseção consecutivos
         for i in range(0, len(intersections), 2):
             x_start = intersections[i]
             x_end = intersections[i+1] if i+1 < len(intersections) else x_start
 
-            # Preencher pixels na linha de varredura entre os pontos de interseção
             for x in range(x_start, x_end + 1):
-                grid.render_cell((x, y))  # Função para preencher um pixel na coordenada (x, y)
+                grid.render_cell((x, y)) 
 
 def perspective_projection(selected_cells, rendered_cells, parameters):
     # points = selected_cells
@@ -191,7 +184,6 @@ def escala(selected_cells, rendered_cells, parameters):
         scaledX = x * xE
         scaledY = y * yE
         scaledPoint = (scaledX, scaledY)
-        #scaledLinha = bres((x,y),(scaledPoint[0], scaledPoint[1]))
 
         scaledPoints.append(scaledPoint)
     grid.render_cells(scaledPoints)
