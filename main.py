@@ -1,7 +1,5 @@
 from grid import Grid
-import sys
 import numpy as np
-print(sys.getrecursionlimit())
 
 grid = Grid(extent=15, size=500)
 
@@ -10,7 +8,6 @@ def my_render_cells_algorithm(selected_cells, rendered_cells, parameters):
         grid.render_cell(cell)
 
 def bresenham_line(selected_cells, rendered_cells, parameters):
-    print(selected_cells)
     x0, y0 = selected_cells[0]
     x1, y1 = selected_cells[1]
 
@@ -38,12 +35,10 @@ def bresenham_line(selected_cells, rendered_cells, parameters):
 	    grid.render_cell(c)
 
 def polilinha(selected_cells, rendered_cells, parameters):
-    print(selected_cells)
     for i in range(0, len(selected_cells) - 1):
         bresenham_line([selected_cells[i], selected_cells[i + 1]], rendered_cells, parameters)
 
 def recorte(selected_cells, rendered_cells, parameters):
-    print(selected_cells)
     xMin, yMin = selected_cells[0]
     xMax, yMax = selected_cells[1]
     for i in rendered_cells:
@@ -56,12 +51,10 @@ def recorte(selected_cells, rendered_cells, parameters):
 
 def preencher_recursivo(x, y, rendered_cells):
     if x > 10 or x < -10 or y > 10 or y < -10:
-      print((x,y), 'sairam do limite')
       return
   
     if (x, y) not in rendered_cells:
         rendered_cells.append((x,y))
-        print((x,y))
         preencher_recursivo(x + 1, y, rendered_cells)
         preencher_recursivo(x - 1, y, rendered_cells)
         preencher_recursivo(x, y + 1, rendered_cells)
@@ -69,7 +62,6 @@ def preencher_recursivo(x, y, rendered_cells):
         return rendered_cells
 
 def preencher(selected_cells, rendered_cells, parameters):
-    print(selected_cells)
     x0, y0 = selected_cells[0]
     points = preencher_recursivo(x0, y0, rendered_cells)
     for c in points:
@@ -99,7 +91,6 @@ def ponto_medio(selected_cells, rendered_cells, parameters):
             e += 2 - 2*y
             y -= 1
         desenha8(x, y, xc, yc)
-    print(coordenadas_circulo)
     for c in coordenadas_circulo:
 	    grid.render_cell(c)
 
@@ -155,7 +146,6 @@ def perspective_projection(selected_cells, rendered_cells, parameters):
         projected_x = x * d / (d + z)
         projected_y = y * d / (d + z)
         projected_points.append((round(projected_x), round(projected_y)))
-    print(projected_points)
     for c in projected_points:
         x, y = c
         grid.render_cell((x, y))
@@ -204,10 +194,69 @@ def escala(selected_cells, rendered_cells, parameters):
         #scaledLinha = bres((x,y),(scaledPoint[0], scaledPoint[1]))
 
         scaledPoints.append(scaledPoint)
-    
-    print(scaledPoints)
     grid.render_cells(scaledPoints)
 
+def de_casteljau(points, t):
+    while len(points) > 1:
+        new_points = []
+        for i in range(len(points) - 1):
+            p_i = points[i]
+            p_i_plus_1 = points[i + 1]
+            new_point = tuple((1 - t) * np.array(p_i) + t * np.array(p_i_plus_1))
+            new_points.append(new_point)
+        points = new_points
+    return points[0]
+
+def rasterize_bezier(selected_cells, rendered_cells, parameters):
+    points = selected_cells
+    curve_points = []
+    num_segments = 100
+    t_values = np.linspace(0, 1, num_segments)
+
+    for t in t_values:
+        point = de_casteljau(points, t)
+        curve_points.append(point)
+
+    rasterized_points = []
+
+    for i in range(len(curve_points) - 1):
+        p0 = curve_points[i]
+        p1 = curve_points[i + 1]
+        rasterized_segment = rasterize_line(p0, p1)
+        rasterized_points.extend(rasterized_segment)
+
+    for cell in rasterized_points:
+        grid.render_cell(cell)
+
+def rasterize_line(p0, p1):
+    x0, y0 = int(p0[0]), int(p0[1])
+    x1, y1 = int(p1[0]), int(p1[1])
+    dx = abs(x1 - x0)
+    dy = abs(y1 - y0)
+    steep = dy > dx
+    if steep:
+        x0, y0 = y0, x0
+        x1, y1 = y1, x1
+    swapped = x0 > x1
+    if swapped:
+        x0, x1 = x1, x0
+        y0, y1 = y1, y0
+    dx = abs(x1 - x0)
+    dy = abs(y1 - y0)
+    error = dx // 2
+    y = y0
+    y_step = 1 if y0 < y1 else -1
+    rasterized_points = []
+
+    for x in range(x0, x1 + 1):
+        point = (y, x) if steep else (x, y)
+        rasterized_points.append(point)
+        error -= dy
+        if error < 0:
+            y += y_step
+            error += dx
+
+    return rasterized_points
 
 # Adds the algorithm to the grid
 grid.add_algorithm(name="Render cells", parameters=None, algorithm=my_render_cells_algorithm)
@@ -217,6 +266,7 @@ grid.add_algorithm(name='Escala', parameters=['EscalaX', 'EscalaY'], algorithm=e
 grid.add_algorithm(name='Bresenham', parameters=None, algorithm=bresenham_line)
 grid.add_algorithm(name='Polilinha', parameters=None, algorithm=polilinha)
 grid.add_algorithm(name='Circulo', parameters=['R'], algorithm=ponto_medio)
+grid.add_algorithm(name='Curvas com Bezier', parameters=None, algorithm=rasterize_bezier)
 grid.add_algorithm(name='Recorte', parameters=None, algorithm=recorte)
 grid.add_algorithm(name='Preenchimento Recursivo', parameters=None, algorithm=preencher)
 grid.add_algorithm(name='Preenchimento Scanline', parameters=None, algorithm=scanline)
